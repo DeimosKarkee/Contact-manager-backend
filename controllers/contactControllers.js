@@ -32,22 +32,17 @@ export const getAllContacts = asyncHandler(async (req, res, next) => {
 });
 
 export const getContactById = asyncHandler(async (req, res, next) => {
-  const contactById = await ContactModels.findById(req.params.id);
-  if (!contactById) {
+  const contactId = await ContactModels.findById(req.params.id);
+  if (!contactId) {
     return next(
-      new ErrorResponse(
-        `Contact not found with the id of ${req.params.id}.`,
-        400
-      )
+      new ErrorResponse(`Contact not foud with the id of ${req.params.id}`)
     );
   }
-  res.json({ success: true, data: contactById });
+  res.json({ success: true, data: contactId });
 });
 
 export const createContact = asyncHandler(async (req, res, next) => {
   upload.single("image")(req, res, async (err) => {
-    console.log(req.body);
-    console.log(JSON.stringify(req.file));
     if (!req.file) {
       return res
         .status(400)
@@ -79,5 +74,62 @@ export const createContact = asyncHandler(async (req, res, next) => {
     }
 
     res.json({ success: true, data: saveContact });
+  });
+});
+
+export const updateContact = asyncHandler(async (req, res, next) => {
+  const contactId = await ContactModels.findById(req.params.id);
+  if (!contactId) {
+    return next(
+      new ErrorResponse(`Contact not foud with the id of ${req.params.id}`)
+    );
+  }
+
+  // find file path of image and delete
+  const filePath = path.join(__dirname, "..", contactId.image);
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      return next(
+        new ErrorResponse(`Could not delete image at ${filePath}`, 500)
+      );
+    }
+  });
+
+  // Upload updated contact
+  upload.single("image")(req, res, async (err) => {
+    if (err) {
+      return next(new ErrorResponse(`Could not upload image: ${err}`, 500));
+    }
+
+    const newContact = await ContactModels.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body, image: req.file.path },
+      { runValidators: true, new: true }
+    );
+    res.json({ success: true, data: newContact });
+  });
+});
+
+export const deleteContact = asyncHandler(async (req, res, next) => {
+  const contactId = await ContactModels.findById(req.params.id);
+  if (!contactId) {
+    return next(
+      new ErrorResponse(`Contact not foud with the id of ${req.params.id}`)
+    );
+  }
+
+  const filePath = path.join(__dirname, "..", contactId.image);
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      return next(
+        new ErrorResponse(`Could not delete image at ${filePath}`, 500)
+      );
+    }
+  });
+
+  await ContactModels.findByIdAndRemove(req.params.id);
+  res.send({
+    success: true,
+    response: `Successfully deleted contact with the id of ${req.params.id}`,
   });
 });

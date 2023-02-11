@@ -30,3 +30,10 @@ app.listen(PORT, () => {
     `Server is running on port ${PORT} in ${process.env.NODE_ENV} mode.`
   );
 });
+
+//Handle unhandled promise rejection
+process.on(`unhandledRejection`, (err, promise) => {
+  console.log(`Error: ${err.message}`);
+  //Close server and exit process
+  server.close(() => process.exit(1));
+});
