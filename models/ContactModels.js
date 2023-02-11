@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import AddressSchema from "./AddressModel.js";
 
 const ContactSchema = new mongoose.Schema({
   name: {
@@ -24,34 +25,8 @@ const ContactSchema = new mongoose.Schema({
     unique: true,
     trim: true,
   },
-  address: {
-    street: {
-      type: String,
-      required: [true, "Please enter a street"],
-      trim: true,
-    },
-    city: {
-      type: String,
-      required: [true, "Please enter a city"],
-      trim: true,
-    },
-    state: {
-      type: String,
-      required: [true, "Please enter a state"],
-      trim: true,
-    },
-    zipCode: {
-      type: String,
-      required: [true, "Please enter zipcode"],
-      trim: true,
-    },
-    country: {
-      type: String,
-      required: [true, "Please enter a country"],
-      trim: true,
-    },
-  },
-  contactImage: {
+  address: AddressSchema,
+  image: {
     type: String,
     required: [true, "Please upload an image"],
   },
